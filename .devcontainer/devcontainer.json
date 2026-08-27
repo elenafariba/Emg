@@ -9,5 +9,5 @@
         }
     },
     "postCreateCommand": "npm install",
-    "postStartCommand": "nohup node server.js > /tmp/server.log 2>&1 &"
+    "postAttachCommand": "pgrep -f 'node server.js' > /dev/null || (nohup node server.js > /tmp/server.log 2>&1 &); gh codespace ports visibility 3000:public -c $CODESPACE_NAME || true"
 }
