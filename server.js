@@ -5,7 +5,6 @@ const net = require('net');
 const port = process.env.PORT || 3000;
 const MY_UUID = process.env.UUID || 'd342d11e-d424-4583-b36e-524ab1f0afa4';
 
-// دریافت آدرس عمومی واقعی کُداسپیس
 function getCodespaceHost() {
     const codespaceName = process.env.CODESPACE_NAME;
     const domain = process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN || 'app.github.dev';
@@ -15,28 +14,19 @@ function getCodespaceHost() {
     return null;
 }
 
+// ساخت سرور HTTP با صفحه وب اختصاصی برای نمایش و کپی لینک
 const server = http.createServer((req, res) => {
-    // اولویت با گرفتن دامنه عمومی کُداسپیس است
-    let host = getCodespaceHost();
-    
-    // اگر دامنه عمومی پیدا نشد، از هدر مرورگر استفاده می‌شود (به شرطی که لوکال‌هاست نباشد)
-    if (!host && req.headers.host && !req.headers.host.includes('localhost')) {
-        host = req.headers.host;
-    }
-    
-    // در صورتی که هیچ‌کدام نبود
-    if (!host) {
-        host = 'localhost';
-    }
-
+    const host = req.headers.host || getCodespaceHost() || 'localhost';
     const vlessLink = `vless://${MY_UUID}@${host}:443?encryption=none&security=tls&sni=${host}&fp=chrome&type=ws&host=${host}&path=%2F#GitHub-Codespace`;
 
+    // خروجی متن ساده برای API یا لینک مستقیم
     if (req.url === '/config') {
         res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
         res.end(vlessLink);
         return;
     }
 
+    // صفحه وب اصلی (ارائه پاپ‌آپ مناسب برای مرورگر گوشی)
     const html = `
     <!DOCTYPE html>
     <html lang="fa" dir="rtl">
